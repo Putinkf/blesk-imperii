@@ -1,0 +1,39 @@
+name: Update Telegram Data
+on:
+  schedule:
+    - cron: '0 */2 * * *'   # Каждые 2 часа
+  workflow_dispatch:  # Ручной запуск
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl jq
+          
+      - name: Fetch Telegram data
+        run: |
+          # Получаем HTML страницы канала
+          curl -s "https://t.me/s/analinhistory" -o telegram.html
+          
+          # Извлекаем количество подписчиков
+          SUBSCRIBERS=$(grep -oP '\d+(?:,\d+)*(?=\s*subscribers?)' telegram.html | head -1)
+          
+          # Создаем JSON с данными
+          echo "{
+            \"subscribers\": \"$SUBSCRIBERS\",
+            \"updated\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"channel\": \"@analinhistory\"
+          }" > docs/telegram-data.json
+          
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add docs/telegram-data.json
+          git diff --staged --quiet || git commit -m "🔄 Автоматическое обновление данных Telegram"
+          git push
