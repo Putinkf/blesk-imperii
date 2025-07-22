@@ -961,10 +961,9 @@
         </aside>
     </div>
 <script>
-// Функция для загрузки данных из локального JSON файла
+// Функция для загрузки данных Telegram
 async function updateTelegramData() {
     try {
-        // Добавляем случайный параметр для обхода кэша браузера
         const response = await fetch('./docs/telegram-data.json?v=' + Math.random());
         const data = await response.json();
         
@@ -974,24 +973,104 @@ async function updateTelegramData() {
             subscriberElement.textContent = data.subscribers;
         }
         
+        // Обновляем посты
+        if (data.posts && data.posts.length > 0) {
+            updatePostsFromData(data.posts);
+        }
+        
         console.log('✅ Данные Telegram обновлены:', data.updated);
         
     } catch (error) {
         console.error('❌ Ошибка загрузки данных Telegram:', error);
         
-        // Fallback значения при ошибке
+        // Fallback значения
         const subscriberElement = document.querySelector('#subscriber-count');
         if (subscriberElement) {
-            subscriberElement.textContent = '900+';
+            subscriberElement.textContent = '950+';
         }
     }
+}
+
+// Функция для обновления постов на сайте
+function updatePostsFromData(posts) {
+    // Проверяем валидность данных из Telegram
+    if (!posts || posts.length === 0) {
+        console.log('📝 Оставляем исторические посты как fallback');
+        return; // Не трогаем существующие статичные посты
+    }
+    
+    const postsContainer = document.querySelector('.posts-section');
+    if (!postsContainer) return;
+    
+    // Сохраняем важные элементы
+    const sectionTitle = postsContainer.querySelector('h3');
+    const ornament = postsContainer.querySelector('.ornament');  
+    const footerLink = postsContainer.querySelector('.footer-link');
+    
+    // Удаляем только старые посты
+    const existingPosts = postsContainer.querySelectorAll('.post-item');
+    existingPosts.forEach(post => post.remove());
+    
+    // Добавляем свежие посты из Telegram
+    posts.slice(0, 2).forEach(post => {
+        const postElement = createPostElement(post);
+        postsContainer.insertBefore(postElement, ornament);
+    });
+    
+    console.log('✅ Посты обновлены: статичные заменены на Telegram');
+}
+    
+    // Добавляем орнамент и ссылку
+    const ornament = document.createElement('div');
+    ornament.className = 'ornament';
+    ornament.textContent = '⚜';
+    postsContainer.appendChild(ornament);
+    
+    const footerLink = document.createElement('div');
+    footerLink.className = 'footer-link';
+    footerLink.innerHTML = '<a href="https://t.me/analinhistory" target="_blank">Войти в чертоги Империи</a>';
+    postsContainer.appendChild(footerLink);
+}
+
+// Функция создания элемента поста
+function createPostElement(post) {
+    const postDiv = document.createElement('div');
+    postDiv.className = 'post-item';
+    
+    const title = post.title || 'Исторический пост';
+    const date = formatDate(post.date) || 'Недавно';
+    const content = cleanContent(post.content) || 'Содержимое поста из Telegram канала...';
+    
+    postDiv.innerHTML = `
+        <div class="post-title">${title}</div>
+        <div class="post-date">${date}</div>
+        <div class="post-content">${content}</div>
+        <span class="post-hashtag">#telegram</span>
+    `;
+    
+    return postDiv;
+}
+
+// Вспомогательные функции
+function formatDate(dateString) {
+    if (!dateString) return 'Недавно';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU');
+}
+
+function cleanContent(content) {
+    if (!content) return '';
+    return content
+        .replace(/<[^>]*>/g, '') // Удаляем HTML теги
+        .replace(/&[^;]+;/g, '') // Удаляем HTML entities
+        .substring(0, 250) + '...';
 }
 
 // Запуск при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     updateTelegramData();
     
-    // Обновление каждые 30 минут (данные обновляются GitHub Actions)
+    // Обновление каждые 30 минут
     setInterval(updateTelegramData, 1800000);
 });
 </script>
