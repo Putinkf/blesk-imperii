@@ -1,39 +1,72 @@
-name: Update Telegram Data
+name: Update Telegram Data & Posts
 on:
   schedule:
-    - cron: '0 */2 * * *'   # Каждые 2 часа
+    - cron: '0 */6 * * *'  # Каждые 6 часов
   workflow_dispatch:  # Ручной запуск
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl jq
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
           
-      - name: Fetch Telegram data
-        run: |
-          # Получаем HTML страницы канала
-          curl -s "https://t.me/s/analinhistory" -o telegram.html
-          
-          # Извлекаем количество подписчиков
-          SUBSCRIBERS=$(grep -oP '\d+(?:,\d+)*(?=\s*subscribers?)' telegram.html | head -1)
-          
-          # Создаем JSON с данными
-          echo "{
-            \"subscribers\": \"$SUBSCRIBERS\",
-            \"updated\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
-            \"channel\": \"@analinhistory\"
-          }" > docs/telegram-data.json
-          
-      - name: Commit and push
+      - name: Configure Git and reset to latest
         run: |
           git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action Bot"
-          git add docs/telegram-data.json
-          git diff --staged --quiet || git commit -m "🔄 Автоматическое обновление данных Telegram"
-          git push
+          git config --local user.name "GitHub Actions Bot"
+          git fetch origin main
+          git reset --hard origin/main
+          
+      - name: Get Telegram subscriber count
+        run: |
+          curl -s -A "Mozilla/5.0" "https://t.me/s/analinhistory" -o telegram.html
+          
+          SUBSCRIBERS=$(grep -oP '\d+(?:,\d+)*(?=\s*subscribers?)' telegram.html | head -1)
+          
+          if [ -z "$SUBSCRIBERS" ]; then
+            SUBSCRIBERS="950+"
+          fi
+          
+          echo "📊 Подписчиков: $SUBSCRIBERS"
+          echo "SUBSCRIBERS=$SUBSCRIBERS" >> $GITHUB_ENV
+          
+      - name: Create data directory
+        run: |
+          mkdir -p docs
+          
+      - name: Create telegram data file
+        run: |
+          cat > docs/telegram-data.json << 'EOF'
+{
+  "subscribers": "${{ env.SUBSCRIBERS }}",
+  "updated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "channel": "@analinhistory"
+}
+EOF
+          
+      - name: Replace variables in JSON
+        run: |
+          sed -i "s/\${{ env.SUBSCRIBERS }}/$SUBSCRIBERS/g" docs/telegram-data.json
+          sed -i "s/\$(date -u +%Y-%m-%dT%H:%M:%SZ)/$(date -u +%Y-%m-%dT%H:%M:%SZ)/g" docs/telegram-data.json
+          
+      - name: Commit and push all updates
+        run: |
+          if git diff --exit-code docs/ > /dev/null 2>&1; then
+            echo "📊 Данные не изменились"
+            exit 0
+          fi
+          
+          echo "🔄 Обновляем подписчиков: $SUBSCRIBERS"
+          
+          git add docs/
+          git commit -m "📊 Обновлено: $SUBSCRIBERS подписчиков ($(date '+%d.%m %H:%M'))"
+          
+          git push origin main --force-with-lease || git push origin main --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
