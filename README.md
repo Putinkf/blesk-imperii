@@ -2,7 +2,6 @@
 > *Величие прошлого в каждом посте*
 
 <div align="center">
-<img src="https://via.placeholder.com/150x150/8b7355/ffffff?text=👑" alt="Блеск Империи" width="150" height="150" style="border-radius: 50%;">
 
 **950+ подписчиков** · **100+ постов** · **2+ года истории**
 
@@ -28,5 +27,21 @@
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
 
-## 🚀 Установка
+## 👥 Команда
 
+| Участник | Роль | Обязанности |
+|----------|------|-------------|
+| 🏛️ **Healkf** | Основатель | Контент и развитие |
+| ⚙️ **Putinkf** | Техдиректор | IT-инфраструктура |
+| ✍️ **Llyrik** | Креативный директор | Тексты и идеи |
+
+## 🌟 Поддержка
+
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white)](https://t.me/Blesk_Impeii)
+
+
+
+
+<div align="center">
+<sub>Создано с ❤️ командой Блеск Империи © 2025</sub>
+</div>
