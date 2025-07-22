@@ -1,18 +1,23 @@
 name: Update Telegram Data
 on:
   schedule:
-    - cron: '0 */2 * * *'   # Каждые 2 часа
+    - cron: '0 */6 * * *'  # Каждые 6 часов
   workflow_dispatch:  # Ручной запуск
 
 jobs:
   update:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Явно разрешаем запись в репозиторий
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # Получаем всю историю
+          
+      - name: Pull latest changes
+        run: |
+          git pull origin main --rebase
           
       - name: Install dependencies
         run: |
@@ -50,8 +55,11 @@ jobs:
             exit 0
           fi
           
+          # Добавляем и отправляем изменения
           git add docs/telegram-data.json
           git commit -m "🔄 Обновление данных Telegram: $(date '+%d.%m.%Y %H:%M')"
-          git push
+          
+          # Пытаемся отправить с автоматическим resolve конфликтов
+          git push || (git pull --rebase origin main && git push)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
