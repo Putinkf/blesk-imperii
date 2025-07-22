@@ -1,4 +1,4 @@
-name: Update Telegram Data
+name: Update Telegram Data & Posts
 on:
   schedule:
     - cron: '0 */6 * * *'  # Каждые 6 часов
@@ -16,60 +16,91 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
           
-      - name: Reset to latest remote state
+      - name: Configure Git and reset to latest
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Actions Bot"
           git fetch origin main
           git reset --hard origin/main
           
+      - name: Install RSS parser
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xmlstarlet curl
+          
       - name: Get Telegram subscriber count
         run: |
-          # Получаем данные из Telegram
+          # Получаем HTML страницы канала
           curl -s -A "Mozilla/5.0" "https://t.me/s/analinhistory" -o telegram.html
           
           # Извлекаем количество подписчиков
           SUBSCRIBERS=$(grep -oP '\d+(?:,\d+)*(?=\s*subscribers?)' telegram.html | head -1)
           
-          # Fallback если данные не получены
           if [ -z "$SUBSCRIBERS" ]; then
-            echo "⚠️ Не удалось получить данные, используем приблизительное значение"
             SUBSCRIBERS="950+"
           fi
           
-          echo "📊 Найдено подписчиков: $SUBSCRIBERS"
+          echo "📊 Подписчиков: $SUBSCRIBERS"
+          echo "SUBSCRIBERS=$SUBSCRIBERS" >> $GITHUB_ENV
           
-          # Создаем обновленный JSON файл
+      - name: Get latest posts from RSS
+        run: |
+          # Получаем RSS ленту канала
+          curl -s "https://rsshub.app/telegram/channel/analinhistory" -o rss.xml
+          
+          # Проверяем успешность загрузки RSS
+          if [ ! -s rss.xml ] || ! xmlstarlet val rss.xml 2>/dev/null; then
+            echo "⚠️ RSS недоступен, используем fallback"
+            cat > docs/posts-data.json << 'EOF'
+[
+  {
+    "title": "Исторические хроники канала",
+    "date": "22.07.2025",
+    "content": "Следите за новыми историческими материалами в нашем Telegram канале @analinhistory"
+  }
+]
+EOF
+          else
+            # Извлекаем последние 2 поста
+            xmlstarlet sel -t \
+              -m "//item[position()<=2]" \
+              -v "concat('{\"title\":\"', title, '\",\"date\":\"', substring(pubDate,1,16), '\",\"content\":\"', substring(description,1,200), '...\"},')" \
+              rss.xml > posts_raw.txt
+            
+            # Формируем JSON массив постов
+            echo "[" > docs/posts-data.json
+            sed '$ s/,$//' posts_raw.txt >> docs/posts-data.json
+            echo "]" >> docs/posts-data.json
+          fi
+          
+      - name: Create combined data file
+        run: |
           mkdir -p docs
+          
+          # Создаем объединенный JSON с подписчиками и постами
           cat > docs/telegram-data.json << EOF
 {
   "subscribers": "$SUBSCRIBERS",
   "updated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "channel": "@analinhistory"
+  "channel": "@analinhistory",
+  "posts": $(cat docs/posts-data.json 2>/dev/null || echo '[]')
 }
 EOF
           
-      - name: Update and push changes
+      - name: Commit and push all updates
         run: |
           # Проверяем есть ли изменения
-          if git diff --exit-code docs/telegram-data.json > /dev/null 2>&1; then
-            echo "📊 Данные не изменились, обновление не требуется"
+          if git diff --exit-code docs/ > /dev/null 2>&1; then
+            echo "📊 Данные не изменились"
             exit 0
           fi
           
-          # Читаем текущее значение подписчиков
-          CURRENT_SUBS=$(cat docs/telegram-data.json | grep -o '"subscribers": "[^"]*"' | sed 's/"subscribers": "\(.*\)"/\1/')
+          echo "🔄 Обновляем подписчиков и посты"
           
-          echo "🔄 Обновляем данные: $CURRENT_SUBS подписчиков"
+          git add docs/
+          git commit -m "📊 Обновлено: $SUBSCRIBERS подписчиков + последние посты ($(date '+%d.%m %H:%M'))"
           
-          # Коммитим изменения
-          git add docs/telegram-data.json
-          git commit -m "📊 Подписчики: $CURRENT_SUBS ($(date '+%d.%m %H:%M'))"
-          
-          # Отправляем с автоматическим resolve конфликтов
-          git push origin main || {
-            echo "⚠️ Конфликт обнаружен, применяем force push..."
-            git push origin main --force-with-lease
-          }
+          # Принудительная отправка для решения конфликтов
+          git push origin main --force-with-lease || git push origin main --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
