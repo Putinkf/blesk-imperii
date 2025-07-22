@@ -1,15 +1,19 @@
 name: Update Telegram Data
 on:
   schedule:
-    - cron: '0 */2 * * *'   # Каждые 2 часа
+    - cron: '0 */6 * * *'  # Каждые 6 часов
   workflow_dispatch:  # Ручной запуск
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Явно разрешаем запись в репозиторий
     steps:
       - uses: actions/checkout@v4
-      
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -23,6 +27,11 @@ jobs:
           # Извлекаем количество подписчиков
           SUBSCRIBERS=$(grep -oP '\d+(?:,\d+)*(?=\s*subscribers?)' telegram.html | head -1)
           
+          # Проверяем что получили данные
+          if [ -z "$SUBSCRIBERS" ]; then
+            SUBSCRIBERS="900+"
+          fi
+          
           # Создаем JSON с данными
           echo "{
             \"subscribers\": \"$SUBSCRIBERS\",
@@ -30,10 +39,19 @@ jobs:
             \"channel\": \"@analinhistory\"
           }" > docs/telegram-data.json
           
-      - name: Commit and push
+      - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
+          
+          # Проверяем есть ли изменения
+          if git diff --quiet docs/telegram-data.json; then
+            echo "Нет изменений в данных"
+            exit 0
+          fi
+          
           git add docs/telegram-data.json
-          git diff --staged --quiet || git commit -m "🔄 Автоматическое обновление данных Telegram"
+          git commit -m "🔄 Обновление данных Telegram: $(date '+%d.%m.%Y %H:%M')"
           git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
