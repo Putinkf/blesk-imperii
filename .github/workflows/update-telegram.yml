@@ -10,62 +10,54 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout with clean state
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+          fetch-depth: 1
+          clean: true
           
-      - name: Configure Git
+      - name: Force sync with remote
         run: |
           git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action Bot"
-          
-      - name: Sync with remote
-        run: |
+          git config --local user.name "GitHub Actions Bot"
           git fetch origin main
           git reset --hard origin/main
           
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y curl jq
-          
-      - name: Fetch Telegram data
-        run: |
           curl -s "https://t.me/s/analinhistory" -o telegram.html
           
+      - name: Extract and update Telegram data
+        run: |
+          # Извлекаем количество подписчиков
           SUBSCRIBERS=$(grep -oP '\d+(?:,\d+)*(?=\s*subscribers?)' telegram.html | head -1)
           
+          # Fallback если не найдено
           if [ -z "$SUBSCRIBERS" ]; then
             SUBSCRIBERS="900+"
           fi
           
-          echo "{
-            \"subscribers\": \"$SUBSCRIBERS\",
-            \"updated\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
-            \"channel\": \"@analinhistory\"
-          }" > docs/telegram-data.json
+          # Создаем JSON с актуальными данными
+          cat > docs/telegram-data.json << EOF
+{
+  "subscribers": "$SUBSCRIBERS",
+  "updated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "channel": "@analinhistory"
+}
+EOF
           
-      - name: Commit and push with retry
+      - name: Commit and force push
         run: |
+          # Проверяем изменения
           if git diff --quiet docs/telegram-data.json; then
-            echo "Нет изменений в данных"
+            echo "📊 Данные не изменились, пропускаем обновление"
             exit 0
           fi
           
+          # Принудительно отправляем изменения
           git add docs/telegram-data.json
-          git commit -m "🔄 Обновление данных Telegram: $(date '+%d.%m.%Y %H:%M')"
-          
-          # Попытка push с автоматическим retry
-          for i in {1..3}; do
-            if git push origin main; then
-              echo "✅ Успешно отправлено с попытки $i"
-              break
-            else
-              echo "⚠️ Попытка $i неудачна, синхронизируем и пробуем снова..."
-              git fetch origin main
-              git rebase origin/main
-            fi
-          done
+          git commit -m "📊 Обновление подписчиков: $SUBSCRIBERS ($(date '+%d.%m.%Y %H:%M'))"
+          git push origin main --force-with-lease
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
