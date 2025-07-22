@@ -732,8 +732,8 @@
                     <span>Основан</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">2 года</span>
-                    <span>В эфире</span>
+                    <span class="stat-number" id="subscriber-count">900+</span>
+                    <span>Подписчиков</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-number">3</span>
@@ -960,5 +960,112 @@
             </div>
         </aside>
     </div>
+<script>
+// Функция для обновления счетчика подписчиков
+async function updateSubscriberCount() {
+    try {
+        // Используем Telegram Web для получения публичной информации
+        const proxyUrl = 'https://api.allorigins.win/get?url=';
+        const targetUrl = 'https://t.me/s/analinhistory';
+        
+        const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+        const data = await response.json();
+        
+        // Простой поиск числа подписчиков в HTML
+        const subscriberMatch = data.contents.match(/(\d+(?:,\d+)*)\s*subscribers?/i);
+        if (subscriberMatch) {
+            const count = subscriberMatch[1];
+            const subscriberElement = document.querySelector('#subscriber-count');
+            if (subscriberElement) {
+                subscriberElement.textContent = count;
+            }
+        }
+    } catch (error) {
+        console.error('Не удалось получить количество подписчиков:', error);
+        // Показываем статичное значение как fallback
+        const subscriberElement = document.querySelector('#subscriber-count');
+        if (subscriberElement) {
+            subscriberElement.textContent = '900+';
+        }
+    }
+}
+
+// Функция для получения последних постов
+async function updateLatestPosts() {
+    try {
+        // Используем RSSHub для получения постов
+        const rssUrl = 'https://rsshub.app/telegram/channel/analinhistory';
+        const proxyUrl = 'https://api.allorigins.win/get?url=';
+        
+        const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
+        const data = await response.json();
+        
+        if (data.contents) {
+            const parser = new DOMParser();
+            const rssDoc = parser.parseFromString(data.contents, 'text/xml');
+            const items = rssDoc.querySelectorAll('item');
+            
+            if (items.length > 0) {
+                const postsContainer = document.querySelector('.posts-section');
+                // Сохраняем заголовок секции
+                const sectionTitle = postsContainer.querySelector('h3').outerHTML;
+                postsContainer.innerHTML = sectionTitle;
+                
+                // Добавляем последние 2 поста
+                Array.from(items).slice(0, 2).forEach((item, index) => {
+                    const postElement = createPostFromRSS(item, index);
+                    postsContainer.appendChild(postElement);
+                });
+                
+                // Добавляем орнамент и ссылку
+                postsContainer.innerHTML += `
+                    <div class="ornament">⚜</div>
+                    <div class="footer-link">
+                        <a href="https://t.me/analinhistory" target="_blank">
+                            Войти в чертоги Империи
+                        </a>
+                    </div>
+                `;
+            }
+        }
+    } catch (error) {
+        console.error('Не удалось обновить посты:', error);
+    }
+}
+
+// Функция для создания элемента поста из RSS
+function createPostFromRSS(rssItem, index) {
+    const postDiv = document.createElement('div');
+    postDiv.className = 'post-item';
+    
+    const title = rssItem.querySelector('title')?.textContent || 'Исторический пост';
+    const description = rssItem.querySelector('description')?.textContent || '';
+    const pubDate = new Date(rssItem.querySelector('pubDate')?.textContent).toLocaleDateString('ru-RU');
+    
+    // Очищаем описание от HTML тегов
+    const cleanDescription = description.replace(/<[^>]*>/g, '').substring(0, 300) + '...';
+    
+    postDiv.innerHTML = `
+        <div class="post-title">${title}</div>
+        <div class="post-date">${pubDate}</div>
+        <div class="post-content">${cleanDescription}</div>
+        <span class="post-hashtag">#telegram</span>
+    `;
+    
+    return postDiv;
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    updateSubscriberCount();
+    updateLatestPosts();
+});
+
+// Обновление данных каждые 10 минут
+setInterval(() => {
+    updateSubscriberCount();
+    updateLatestPosts();
+}, 600000);
+</script>
 </body>
 </html>
