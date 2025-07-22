@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - Блеск Империи</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-crown">👑</div>
+                <h1>⚜ ПРИСОЕДИНИТЬСЯ К ИМПЕРИИ ⚜</h1>
+                <p class="auth-subtitle">Станьте частью исторического сообщества!</p>
+            </div>
+            
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="username">👤 Имя пользователя</label>
+                    <input type="text" id="username" required placeholder="Историк_2025">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">📧 Email</label>
+                    <input type="email" id="email" required placeholder="your@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">🔒 Пароль</label>
+                    <input type="password" id="password" required placeholder="Минимум 6 символов">
+                </div>
+                
+                <button type="submit" class="auth-submit">
+                    <span class="btn-icon">⚜</span>
+                    Присоединиться к Империи
+                </button>
+                
+                <div class="auth-links">
+                    <a href="login.html">Уже есть аккаунт? Войти</a>
+                    <a href="index.html">← Вернуться на главную</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('📝 Функция регистрации будет добавлена позже!');
+        });
+    </script>
+</body>
+</html>
