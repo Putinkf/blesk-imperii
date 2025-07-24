@@ -24,7 +24,9 @@
             <div class="form-group">
                 <input type="password" placeholder="Секретный код доступа" required>
             </div>
-            
+			<div class="form-group">
+				<input type="password" name="confirmPassword" placeholder="Подтверждение кода доступа" required>
+			</div>
             <div class="terms-checkbox">
                 <input type="checkbox" id="terms" required>
                 <label for="terms">Клянусь служить величию <a href="#">Империи</a> и следовать <a href="#">кодексу чести</a></label>
@@ -38,7 +40,7 @@
             </div>
         </form>
     </div>
-
+	<script type="module" src="path/to/auth-handler.js"></script>
     <script>
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
