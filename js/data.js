@@ -1,5 +1,5 @@
 // Полная коллекция из 100 исторических постов для TikTok альбома
-const postLinks = [
+window.historicalPosts = [
     {
         id: "1210",
         title: "Великое переселение народов",
@@ -802,4 +802,4 @@ const postLinks = [
     }
 ];
 
-console.log(`✅ Загружено ${postLinks.length} исторических постов`);
+console.log(`✅ Загружено ${historicalPosts.length} исторических постов`);

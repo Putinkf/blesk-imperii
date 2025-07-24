@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Исторический Альбом</title>
+  <style>
+    /* ===== Базовые стили и переменные ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+
+    body.albom-page {
+      position: relative;
+      z-index: 0;
+      font-family: 'Crimson Text', serif;
+      line-height: 1.6;
+      padding: 20px;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.albom-page::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+      background-repeat: repeat;
+      background-position: 0 0, 90px 90px;
+      background-size: 180px 180px, 130px 130px;
+      background-image: none;
+    }
+
+    :root {
+      /* Светлая тема (по умолчанию) */
+      --bg-primary: #f5f2e8;
+      --bg-secondary: #ffffff;
+      --bg-card: #fff9f0;
+      --text-primary: #3a3225;
+      --text-secondary: #5a4d3a;
+      --accent-color: #8b7355;
+      --accent-light: #a0916d;
+      --accent-dark: #6b5b47;
+      --border-color: #d4c5a9;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme='dark'] {
+      /* Тёмная тема */
+      --bg-primary: #2a2419;
+      --bg-secondary: #1e1b13;
+      --bg-card: #1a1710;
+      --text-primary: #e8dcc0;
+      --text-secondary: #d4c5a9;
+      --accent-color: #a0916d;
+      --accent-light: #c5b393;
+      --accent-dark: #8b7355;
+      --border-color: #4a4031;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    :root[data-theme="dark"] body.albom-page::before {
+      background-image:
+        url('data:image/svg+xml,<svg width="180" height="180" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="%23d4c5a9" stroke-width="1" opacity="0.12"><path d="M100,50 Q110,60 120,50 Q130,40 140,50 Q150,60 140,70 Q130,80 120,70 Q110,80 100,70 Q90,80 80,70 Q70,60 80,50 Q90,40 100,50 Z"/><path d="M100,130 Q110,140 120,130 Q130,120 140,130 Q150,140 140,150 Q130,160 120,150 Q110,160 100,150 Q90,160 80,150 Q70,140 80,130 Q90,120 100,130 Z"/><circle cx="100" cy="100" r="8" fill="%23c5b393" opacity="0.15"/></g></svg>'),
+        url('data:image/svg+xml,<svg width="130" height="130" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="%23a89574" stroke-width="1.2" opacity="0.08"><path d="M75,30 Q82,38 90,30 Q98,22 105,30 Q112,38 105,45 Q98,52 90,45 Q82,52 75,45 Q68,52 60,45 Q53,38 60,30 Q68,22 75,30 Z"/><path d="M75,105 Q82,113 90,105 Q98,97 105,105 Q112,113 105,120 Q98,127 90,120 Q82,127 75,120 Q68,127 60,120 Q53,113 60,105 Q68,97 75,105 Z"/></g></svg>');
+      background-size: 180px 180px, 130px 130px;
+      background-position: 0 0, 90px 90px;
+    }
+
+    :root[data-theme="light"] body.albom-page::before {
+      background-image:
+        url('data:image/svg+xml,<svg width="180" height="180" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="%23666666" stroke-width="1.5" opacity="0.3"><path d="M100,50 Q110,60 120,50 Q130,40 140,50 Q150,60 140,70 Q130,80 120,70 Q110,80 100,70 Q90,80 80,70 Q70,60 80,50 Q90,40 100,50 Z"/><path d="M100,130 Q110,140 120,130 Q130,120 140,130 Q150,140 140,150 Q130,160 120,150 Q110,160 100,150 Q90,160 80,150 Q70,140 80,130 Q90,120 100,130 Z"/><circle cx="100" cy="100" r="8" fill="%23777777" opacity="0.4"/></g></svg>'),
+        url('data:image/svg+xml,<svg width="130" height="130" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="%23666666" stroke-width="1.5" opacity="0.25"><path d="M75,30 Q82,38 90,30 Q98,22 105,30 Q112,38 105,45 Q98,52 90,45 Q82,52 75,45 Q68,52 60,45 Q53,38 60,30 Q68,22 75,30 Z"/><path d="M75,105 Q82,113 90,105 Q98,97 105,105 Q112,113 105,120 Q98,127 90,120 Q82,127 75,120 Q68,127 60,120 Q53,113 60,105 Q68,97 75,105 Z"/></g></svg>');
+      background-size: 180px 180px, 130px 130px;
+      background-position: 0 0, 90px 90px;
+    }
+
+    /* Шапка и кнопки */
+    .header-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .back-btn {
+      padding: 8px 16px;
+      background-color: var(--accent-color);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .back-btn:hover {
+      background-color: var(--accent-dark);
+      transform: translateY(-2px);
+    }
+
+    .theme-btn {
+      padding: 8px 16px;
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .theme-btn:hover {
+      background-color: var(--accent-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Основной контент */
+    .albom-container {
+      overflow-y: hidden !important;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 0;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--accent-color);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* Поиск */
+    .search-container {
+      max-width: 600px;
+      margin: 0 auto 30px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .album-search {
+      flex: 1;
+      padding: 12px 20px;
+      border: 2px solid var(--border-color);
+      border-radius: 30px;
+      background-color: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      padding: 0 25px;
+      background: linear-gradient(to right, var(--accent-color), var(--accent-dark));
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      height: 44px;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(to right, var(--accent-dark), var(--accent-light));
+      transform: translateY(-1px);
+    }
+
+    /* Сетка постов */
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+    }
+
+    .post-card {
+      background: var(--bg-card);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .post-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--accent-color);
+    }
+
+    .post-title,
+    .post-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--accent-color);
+      margin-bottom: 12px;
+    }
+
+    .post-meta {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+      color: var(--accent-light);
+      font-style: italic;
+    }
+
+    .post-content, .preview {
+      color: var(--text-secondary);
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+
+    .post-tags,
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .tag {
+      background: rgba(139, 115, 85, 0.1);
+      color: var(--accent-color);
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+    }
+
+    /* ===== Стили модального окна для поста ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 1000;
+      overflow-y: auto;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: var(--bg-card);
+      margin: 5% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 800px;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--accent-dark);
+      transition: color 0.2s ease;
+    }
+
+    .close-modal:hover {
+      color: var(--accent-color);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      color: var(--accent-color);
+    }
+
+    .modal-form label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    .modal-form input[type="text"],
+    .modal-form textarea {
+      width: 100%;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      border: 2px solid var(--border-color);
+      border-radius: 5px;
+      background-color: var(--bg-card);
+      color: var(--text-primary);
+      font-family: 'Crimson Text', serif;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .modal-form input[type="text"]:focus,
+    .modal-form textarea:focus {
+      border-color: var(--accent-color);
+      outline: none;
+    }
+
+    .modal-form .main-btn {
+      padding: 12px 25px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+
+    .modal-form .main-btn:hover {
+      background: var(--accent-dark);
+    }
+
+    /* ===== Кнопка "Предложить пост" (FAB style) ===== */
+    .propose-post-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background-color: var(--accent-color);
+      color: white;
+      font-size: 32px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      transition: background-color 0.3s ease;
+      z-index: 1100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      line-height: 1;
+    }
+
+    .propose-post-btn:hover {
+      background-color: var(--accent-dark);
+    }
+
+    /* ===== Классы для анимации открытия постов и модалок ===== */
+    .post-open-animation {
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .post-open-animation.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ===== Стили стилизованного input date ===== */
+    .custom-date-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .custom-date-wrapper input[type="date"] {
+      width: 100%;
+      padding: 9px 42px 9px 11px;
+      font-size: 1rem;
+      border: 2px solid var(--border-color, #d4c5a9);
+      border-radius: 7px;
+      background: var(--bg-secondary, #fffef8);
+      color: var(--text-primary, #333);
+      font-family: 'Crimson Text', serif;
+      transition: border 0.22s, background 0.22s;
+      box-shadow: 0 2px 12px rgba(139,115,85,0.07);
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      margin-bottom: 4px;
+    }
+
+    .custom-date-wrapper input[type="date"]:focus {
+      border-color: var(--accent-color, #8b7355);
+      background: #faf6ee;
+    }
+
+    .custom-date-icon {
+      position: absolute;
+      top: 50%;
+      right: 13px;
+      transform: translateY(-50%);
+      font-size: 1.26em;
+      color: var(--accent-color, #8b7355);
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .custom-date-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .custom-date-wrapper input[type="date"]::-webkit-input-placeholder { color: #b3a891; }
+    .custom-date-wrapper input[type="date"]::-moz-placeholder { color: #b3a891; }
+    .custom-date-wrapper input[type="date"]:-ms-input-placeholder { color: #b3a891; }
+    .custom-date-wrapper input[type="date"]::placeholder { color: #b3a891; }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .page-title {
+        font-size: 2rem;
+      }
+
+      .header-controls {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .posts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        width: 90%;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body class="albom-page">
+
+  <div class="header-controls">
+    <a href="index.html" class="back-btn">← Обратно на сайт</a>
+    <h1 class="albom-title"><span class="fleur">⚜</span> Исторический альбом <span class="fleur">⚜</span></h1>
+    <button class="theme-btn" onclick="toggleTheme()">🌓 Сменить тему</button>
+  </div>
+
+  <div class="container">
+    <div class="search-container">
+      <input type="text" class="album-search" placeholder="Поиск по эпохам, тегам..." id="searchInput" />
+      <button class="btn-primary" id="searchButton">Найти</button>
+    </div>
+
+    <div class="posts-grid" id="postsContainer">
+      <!-- Посты вставляются скриптом -->
+    </div>
+  </div>
+
+  <!-- Кнопка "Предложить пост" -->
+  <button class="propose-post-btn" type="button" aria-label="Предложить пост">+</button>
+
+  <!-- Модальное окно для показа постов -->
+  <div id="postModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalContent">
+    <div class="modal-content">
+      <span class="close-modal" aria-label="Закрыть">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <div class="modal-meta">
+        <span id="modalEra"></span>
+        <span id="modalDate"></span>
+      </div>
+      <p id="modalContent"></p>
+      <div id="modalTags" class="post-tags"></div>
+    </div>
+  </div>
+
+  <!-- Модальное окно "Предложить пост" -->
+  <div id="proposePostModal" class="modal custom-modal" role="dialog" aria-modal="true" aria-labelledby="proposePostTitle">
+    <div class="modal-content">
+      <span class="close-modal" id="closeProposePost" title="Закрыть">&times;</span>
+      <div class="modal-header">
+        <span class="fleur">⚜</span>
+        <h2 id="proposePostTitle">Предложить пост</h2>
+        <span class="fleur">⚜</span>
+      </div>
+      <form id="proposePostForm" class="modal-form">
+        <label for="postTitle">Заголовок</label>
+        <input type="text" id="postTitle" name="title" required placeholder="Распятие Иисуса Христа" />
+
+        <label for="postEra">Эпоха</label>
+        <input type="text" id="postEra" name="era" required placeholder="33 год н.э." />
+
+        <label for="postText">Текст поста</label>
+        <textarea id="postText" name="text" required placeholder="Текст поста..."></textarea>
+
+        <label for="postDate">Дата (ГГГГ-ММ-ДД)</label>
+        <div class="custom-date-wrapper">
+          <input type="date" id="postDate" name="date" required>
+          <span class="custom-date-icon">📅</span>
+        </div>
+
+        <label for="postHashtags">Хештеги (через запятую, обязательно с #)</label>
+        <input type="text" id="postHashtags" name="hashtags" required placeholder="#христос, #христианство" />
+
+        <button type="submit" class="main-btn">Отправить</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Загрузка темы из localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+
+    const posts = window.historicalPosts || window.postLinks || [];
+
+    const postsContainer = document.getElementById('postsContainer');
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const postModal = document.getElementById('postModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalEra = document.getElementById('modalEra');
+    const modalDate = document.getElementById('modalDate');
+    const modalContent = document.getElementById('modalContent');
+    const modalTags = document.getElementById('modalTags');
+    const closeModalBtn = postModal.querySelector('.close-modal');
+
+    const proposePostBtn = document.querySelector('.propose-post-btn');
+    const proposePostModal = document.getElementById('proposePostModal');
+    const closeProposePostBtn = document.getElementById('closeProposePost');
+    const proposePostForm = document.getElementById('proposePostForm');
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      if (dateStr.includes('-')) return dateStr.split('-').reverse().join('.');
+      return dateStr;
+    }
+
+    function renderPosts(postList) {
+      postsContainer.innerHTML = '';
+      if (postList.length === 0) {
+        postsContainer.innerHTML = `<p style="text-align:center; color: var(--text-secondary);">Посты не найдены.</p>`;
+        return;
+      }
+      postList.forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post-card';
+        div.tabIndex = 0;
+        div.setAttribute('role', 'button');
+        div.setAttribute('aria-pressed', 'false');
+        div.innerHTML = `
+          <h3 class="post-title">${post.title || ''}</h3>
+          <div class="post-meta">
+            <span>${post.era || ''}</span>
+            <span>${formatDate(post.date)}</span>
+          </div>
+          <p class="post-content">${post.content || post.text || ''}</p>
+          <div class="post-tags">
+            ${(post.hashtags || post.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}
+          </div>
+        `;
+        div.addEventListener('click', () => openModal(post));
+        div.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openModal(post);
+          }
+        });
+        postsContainer.appendChild(div);
+      });
+    }
+
+    function openModal(post) {
+      modalTitle.textContent = post.title || '';
+      modalEra.textContent = post.era || '';
+      modalDate.textContent = formatDate(post.date);
+      modalContent.textContent = post.content || post.text || '';
+      modalTags.innerHTML = (post.hashtags || post.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
+      postModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+
+      const modalContentBlock = postModal.querySelector('.modal-content');
+      modalContentBlock.classList.add('post-open-animation');
+      void modalContentBlock.offsetWidth; // триггер перерисовки
+      modalContentBlock.classList.add('active');
+    }
+
+    function closeModalWithAnimation() {
+      const modalContentBlock = postModal.querySelector('.modal-content');
+      modalContentBlock.classList.remove('active');
+      setTimeout(() => {
+        postModal.style.display = 'none';
+        document.body.style.overflow = '';
+        modalContentBlock.classList.remove('post-open-animation');
+      }, 400);
+    }
+
+    closeModalBtn.addEventListener('click', closeModalWithAnimation);
+    postModal.addEventListener('click', e => {
+      if (e.target === postModal) closeModalWithAnimation();
+    });
+
+    // Поиск
+    function filterPosts() {
+      const term = searchInput.value.trim().toLowerCase();
+      if (!term) {
+        renderPosts(posts);
+        return;
+      }
+      const filtered = posts.filter(p => {
+        const s = [
+          p.title, p.era, p.text || p.content,
+          ...(p.hashtags || p.tags || [])
+        ].filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return s.includes(term);
+      });
+      renderPosts(filtered);
+    }
+
+    searchButton.addEventListener('click', filterPosts);
+    searchInput.addEventListener('keyup', e => {
+      if (e.key === 'Enter') filterPosts();
+    });
+
+    // Инициализация
+    renderPosts(posts);
+
+    // --- Логика для модального окна "Предложить пост" ---
+    proposePostBtn.addEventListener('click', () => {
+      proposePostModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+
+      const modalContentBlock = proposePostModal.querySelector('.modal-content');
+      modalContentBlock.classList.add('post-open-animation');
+      void modalContentBlock.offsetWidth;
+      modalContentBlock.classList.add('active');
+    });
+
+    function closeProposeModalWithAnimation() {
+      const modalContentBlock = proposePostModal.querySelector('.modal-content');
+      modalContentBlock.classList.remove('active');
+      setTimeout(() => {
+        proposePostModal.style.display = 'none';
+        document.body.style.overflow = '';
+        modalContentBlock.classList.remove('post-open-animation');
+      }, 400);
+    }
+
+    closeProposePostBtn.addEventListener('click', closeProposeModalWithAnimation);
+    proposePostModal.addEventListener('click', e => {
+      if (e.target === proposePostModal) {
+        closeProposeModalWithAnimation();
+      }
+    });
+
+    proposePostForm.addEventListener('submit', e => {
+      e.preventDefault();
+      alert('Спасибо за предложение поста! (Реализация отправки пока не реализована)');
+      proposePostForm.reset();
+      closeProposeModalWithAnimation();
+    });
+  </script>
+
+  <!-- Подключаем внешние скрипты, если нужны -->
+  <script src="js/posts-data.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/albom.js"></script>
+
+</body>
+</html>

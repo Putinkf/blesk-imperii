@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Блеск Империи - Исторический канал</title>
+    <title>Блеск Империи - Величие прошлого в каждом посте</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/album.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
     <!-- Прелоадер -->
@@ -24,7 +26,7 @@
             <a href="#founders">Основатели</a>
             <a href="#posts">Посты</a>
             <a href="#stats">Статистика</a>
-            <a href="#" id="openAlbum">Исторический альбом</a>
+            <a href="albom.html" id="album-link">Исторический Альбом</a>
             
             <!-- Блок аутентификации -->
             <div class="auth-section">
@@ -57,29 +59,6 @@
 
     <!-- Кнопка "Наверх" -->
     <button class="scroll-top" id="scrollTop">↑</button>
-
-    <!-- Исторический TikTok альбом -->
-    <div class="posts-album" id="postsAlbum">
-        <div class="album-header">
-            <div class="album-title">Исторический альбом</div>
-            <button class="album-close" id="albumClose">×</button>
-        </div>
-        <div class="posts-container" id="postsContainer"></div>
-    </div>
-
-    <!-- Модальное окно пересылки -->
-    <div class="share-modal" id="shareModal">
-        <div class="share-modal-content">
-            <h3>Поделиться постом</h3>
-            <div class="share-options">
-                <a href="#" class="share-option" id="shareVK">📘 ВКонтакте</a>
-                <a href="#" class="share-option" id="shareTelegram">📱 Telegram</a>
-                <a href="#" class="share-option" id="shareWhatsApp">📞 WhatsApp</a>
-                <a href="#" class="share-option" id="copyLink">🔗 Копировать ссылку</a>
-            </div>
-            <button class="share-close" id="shareClose">Закрыть</button>
-        </div>
-    </div>
 
     <div class="container">
         <header class="scroll-animate">
@@ -266,6 +245,7 @@
             <div class="posts-section scroll-animate" id="posts">
                 <h3>Избранные посты</h3>
                 
+                <!-- Оставлен только 1-й избранный пост -->
                 <div class="post-item" data-post-id="1">
                     <div class="post-title">Самая длинноволосая династия Европы</div>
                     <div class="post-date">V-VIII век н.э.</div>
@@ -300,6 +280,7 @@
                     </div>
                 </div>
                 
+                <!-- Оставлен только 2-й избранный пост -->
                 <div class="post-item" data-post-id="2">
                     <div class="post-title">День, когда демократия умерла под гусеницами</div>
                     <div class="post-date">Октябрь 1993</div>
@@ -338,126 +319,58 @@
             </div>
         </aside>
     </div>
-<<<<<<< HEAD
 
+    <!-- Исторический альбом (модальное окно) -->
+    <div id="postsAlbum" class="posts-album" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="album-header">
+            <h2 class="album-title">🏛️ Исторический альбом</h2>
+            <button id="albumClose" class="album-close" aria-label="Закрыть">×</button>
+            <input type="search" id="albumSearch" class="album-search" placeholder="Поиск по теме, хештегу или слову..." autocomplete="off" />
+        </div>
+        <div id="albumContainer" class="album-container" role="list">
+            <!-- Карточки постов будут добавлены через JavaScript -->
+        </div>
+    </div>
+
+    <!-- Подключение скриптов -->
     <script src="js/data.js"></script>
     <script src="js/album.js"></script>
+    <script src="js/album-modal.js"></script>
     <script src="js/app.js"></script>
-=======
-<script>
-// Функция для загрузки данных Telegram
-async function updateTelegramData() {
-    try {
-        const response = await fetch('./docs/telegram-data.json?v=' + Math.random());
-        const data = await response.json();
-        
-        // Обновляем счетчик подписчиков
-        const subscriberElement = document.querySelector('#subscriber-count');
-        if (subscriberElement && data.subscribers) {
-            subscriberElement.textContent = data.subscribers;
-        }
-        
-        // Обновляем посты
-        if (data.posts && data.posts.length > 0) {
-            updatePostsFromData(data.posts);
-        }
-        
-        console.log('✅ Данные Telegram обновлены:', data.updated);
-        
-    } catch (error) {
-        console.error('❌ Ошибка загрузки данных Telegram:', error);
-        
-        // Fallback значения
-        const subscriberElement = document.querySelector('#subscriber-count');
-        if (subscriberElement) {
-            subscriberElement.textContent = '950+';
-        }
-    }
-}
+    <script src="js/posts-data.js"></script>
+    <script src="js/script.js"></script>
 
-// Функция для обновления постов на сайте
-function updatePostsFromData(posts) {
-    // Проверяем валидность данных из Telegram
-    if (!posts || posts.length === 0) {
-        console.log('📝 Оставляем исторические посты как fallback');
-        return; // Не трогаем существующие статичные посты
-    }
-    
-    const postsContainer = document.querySelector('.posts-section');
-    if (!postsContainer) return;
-    
-    // Сохраняем важные элементы
-    const sectionTitle = postsContainer.querySelector('h3');
-    const ornament = postsContainer.querySelector('.ornament');  
-    const footerLink = postsContainer.querySelector('.footer-link');
-    
-    // Удаляем только старые посты
-    const existingPosts = postsContainer.querySelectorAll('.post-item');
-    existingPosts.forEach(post => post.remove());
-    
-    // Добавляем свежие посты из Telegram
-    posts.slice(0, 2).forEach(post => {
-        const postElement = createPostElement(post);
-        postsContainer.insertBefore(postElement, ornament);
-    });
-    
-    console.log('✅ Посты обновлены: статичные заменены на Telegram');
-}
-    
-    // Добавляем орнамент и ссылку
-    const ornament = document.createElement('div');
-    ornament.className = 'ornament';
-    ornament.textContent = '⚜';
-    postsContainer.appendChild(ornament);
-    
-    const footerLink = document.createElement('div');
-    footerLink.className = 'footer-link';
-    footerLink.innerHTML = '<a href="https://t.me/analinhistory" target="_blank">Войти в чертоги Империи</a>';
-    postsContainer.appendChild(footerLink);
-}
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const openAlbumBtn = document.getElementById('openAlbum');
+        const albumSection = document.getElementById('postsAlbum');
+        const albumCloseBtn = document.getElementById('albumClose');
 
-// Функция создания элемента поста
-function createPostElement(post) {
-    const postDiv = document.createElement('div');
-    postDiv.className = 'post-item';
-    
-    const title = post.title || 'Исторический пост';
-    const date = formatDate(post.date) || 'Недавно';
-    const content = cleanContent(post.content) || 'Содержимое поста из Telegram канала...';
-    
-    postDiv.innerHTML = `
-        <div class="post-title">${title}</div>
-        <div class="post-date">${date}</div>
-        <div class="post-content">${content}</div>
-        <span class="post-hashtag">#telegram</span>
-    `;
-    
-    return postDiv;
-}
+        openAlbumBtn?.addEventListener('click', e => {
+          e.preventDefault();
+          albumSection.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        });
 
-// Вспомогательные функции
-function formatDate(dateString) {
-    if (!dateString) return 'Недавно';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU');
-}
+        albumCloseBtn?.addEventListener('click', () => {
+          albumSection.classList.remove('active');
+          document.body.style.overflow = '';
+        });
 
-function cleanContent(content) {
-    if (!content) return '';
-    return content
-        .replace(/<[^>]*>/g, '') // Удаляем HTML теги
-        .replace(/&[^;]+;/g, '') // Удаляем HTML entities
-        .substring(0, 250) + '...';
-}
+        albumSection?.addEventListener('click', e => {
+          if (e.target === albumSection) {
+            albumSection.classList.remove('active');
+            document.body.style.overflow = '';
+          }
+        });
 
-// Запуск при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    updateTelegramData();
-    
-    // Обновление каждые 30 минут
-    setInterval(updateTelegramData, 1800000);
-});
-</script>
->>>>>>> 4088cbf3f996a19ddee3f6231323034d6800e476
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Escape' && albumSection.classList.contains('active')) {
+            albumSection.classList.remove('active');
+            document.body.style.overflow = '';
+          }
+        });
+      });
+    </script>
 </body>
 </html>

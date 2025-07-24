@@ -1,0 +1,256 @@
+/* Стили для страницы регистрации - полностью унифицированные с login.css */
+
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--bg-primary);
+    font-family: 'Crimson Text', serif;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Убираем скролл-бар */
+.register-container::-webkit-scrollbar {
+    display: none;
+}
+
+.register-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Фоновый узор - идентично login.css */
+.register-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+        radial-gradient(circle, var(--accent-color) 1.5px, transparent 1.5px),
+        radial-gradient(circle at 25% 25%, var(--accent-color) 1px, transparent 1px),
+        radial-gradient(circle at 75% 75%, var(--accent-color) 0.8px, transparent 0.8px);
+    background-size: 60px 60px, 40px 40px, 80px 80px;
+    opacity: 0.25;
+    animation: backgroundMove 25s linear infinite;
+    z-index: 0;
+}
+
+/* Водяная надпись "Блеск Империи" - аналогично login.css */
+.register-container::after {
+    content: 'Блеск Империи';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(12deg);
+    font-family: 'Playfair Display', serif;
+    font-size: 7.5em;
+    font-weight: 700;
+    color: var(--accent-color);
+    opacity: 0.03;
+    z-index: 0;
+    white-space: nowrap;
+    pointer-events: none;
+    text-shadow: 0 0 50px var(--accent-color);
+    animation: watermarkPulse 8s ease-in-out infinite;
+}
+
+@keyframes backgroundMove {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(60px, 60px) rotate(360deg); }
+}
+
+@keyframes watermarkPulse {
+    0%, 100% { 
+        opacity: 0.03;
+        transform: translate(-50%, -50%) rotate(12deg) scale(1);
+    }
+    50% { 
+        opacity: 0.06;
+        transform: translate(-50%, -50%) rotate(12deg) scale(1.02);
+    }
+}
+
+.register-form {
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+    backdrop-filter: blur(15px);
+    padding: 60px 50px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px var(--shadow-heavy);
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+    border: 2px solid var(--border-color);
+    position: relative;
+    z-index: 10;
+}
+
+.register-form h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2em;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* Унифицированные иконки заголовка - как в login.css */
+.register-form h2::before,
+.register-form h2::after {
+    content: '⚜️';
+    font-size: 0.7em;
+}
+
+.register-subtitle {
+    font-size: 1.1em;
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+    font-style: italic;
+    font-family: 'Crimson Text', serif;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+    position: relative;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 15px 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: 'Crimson Text', serif;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(139, 115, 85, 0.3);
+    transform: translateY(-2px);
+}
+
+.form-group input::placeholder {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.register-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-secondary));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: 'Crimson Text', serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.register-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(139, 115, 85, 0.5);
+}
+
+.register-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.terms-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 20px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-align: left;
+}
+
+.terms-checkbox input[type="checkbox"] {
+    width: auto !important;
+    margin: 0;
+    accent-color: var(--accent-color);
+}
+
+.terms-checkbox label {
+    margin: 0;
+    line-height: 1.4;
+    font-weight: normal;
+}
+
+.terms-checkbox a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.terms-checkbox a:hover {
+    color: var(--accent-secondary);
+}
+
+.form-links {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.form-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+    display: block;
+    margin: 8px 0;
+}
+
+.form-links a:hover {
+    color: var(--accent-color);
+}
+
+/* Адаптивность - синхронизировано с login.css */
+@media (max-width: 768px) {
+    .register-container::after {
+        font-size: 6em;
+    }
+    
+    .register-form {
+        padding: 40px 30px;
+        max-width: 90%;
+    }
+    
+    .register-form h2 {
+        font-size: 1.8em;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-container::after {
+        font-size: 4em;
+    }
+    
+    .register-form {
+        padding: 30px 25px;
+    }
+    
+    .register-form h2 {
+        font-size: 1.6em;
+    }
+}

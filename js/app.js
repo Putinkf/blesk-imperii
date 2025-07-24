@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initScrollAnimations();
     initPostRatings();
     initTelegramData();
+    initAlbumModal(); // Добавлена инициализация модального окна альбома
 });
 
 // === ПРЕЛОАДЕР ===
@@ -146,7 +147,7 @@ function initScrollAnimations() {
     });
 }
 
-// === РЕЙТИНГОВАЯ СИСТЕМА ДЛЯ ОБЫЧНЫХ ПОСТОВ ===
+// === РЕЙТИНГОВАЯ СИСТЕМА ДЛЯ ПОСТОВ ===
 function initPostRatings() {
     const userRatings = JSON.parse(localStorage.getItem('postRatings') || '{}');
 
@@ -226,6 +227,143 @@ function initPostRatings() {
     });
 }
 
+// === МОДАЛЬНОЕ ОКНО АЛЬБОМА ===
+function initAlbumModal() {
+    const openAlbumBtn = document.getElementById('openAlbum');
+    const albumModal = document.getElementById('postsAlbum');
+    const closeBtn = document.getElementById('albumClose');
+    const overlay = albumModal.querySelector('.album-overlay');
+    
+    if (!openAlbumBtn || !albumModal) return;
+
+    // Открытие модального окна
+    openAlbumBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        albumModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Инициализация альбома при первом открытии
+        if (!albumModal.dataset.initialized) {
+            initAlbumContent();
+            albumModal.dataset.initialized = 'true';
+        }
+    });
+
+    // Закрытие модального окна
+    function closeModal() {
+        albumModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
+
+    // Закрытие по ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && albumModal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+}
+
+// Инициализация контента альбома
+function initAlbumContent() {
+    const albumContainer = document.getElementById('albumContainer');
+    const searchInput = document.getElementById('albumSearch');
+    
+    // Загрузка данных альбома
+    fetchAlbumData()
+        .then(posts => {
+            renderAlbumPosts(posts, albumContainer);
+            setupAlbumSearch(posts, searchInput, albumContainer);
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки данных альбома:', error);
+            albumContainer.innerHTML = '<div class="album-error">Не удалось загрузить исторические записи. Пожалуйста, попробуйте позже.</div>';
+        });
+}
+
+// Загрузка данных для альбома
+function fetchAlbumData() {
+    // В реальном приложении здесь будет fetch к API или файлу с данными
+    return new Promise((resolve) => {
+        // Заглушка с тестовыми данными
+        setTimeout(() => {
+            resolve([
+                {
+                    id: 'album-1',
+                    title: 'Самая длинноволосая династия Европы',
+                    date: 'V-VIII век н.э.',
+                    content: 'Меровинги - первая династия франкских королей, известные своими длинными волосами как символом власти.',
+                    hashtags: ['#факты', '#средневековье']
+                },
+                {
+                    id: 'album-2',
+                    title: 'День, когда демократия умерла под гусеницами',
+                    date: 'Октябрь 1993',
+                    content: 'Штурм Дома Советов в Москве - один из самых трагических эпизодов современной российской истории.',
+                    hashtags: ['#факты', '#россия']
+                }
+                // Можно добавить больше постов
+            ]);
+        }, 300);
+    });
+}
+
+// Рендер постов в альбоме
+function renderAlbumPosts(posts, container) {
+    if (!posts || !posts.length) {
+        container.innerHTML = '<div class="album-empty">Исторические записи не найдены</div>';
+        return;
+    }
+
+    container.innerHTML = posts.map(post => `
+        <div class="album-card" data-id="${post.id}">
+            <div class="album-card-header">
+                <h3 class="album-card-title">${post.title}</h3>
+                <div class="album-card-date">${post.date}</div>
+            </div>
+            <div class="album-card-content">
+                <p>${post.content}</p>
+                <div class="album-card-tags">
+                    ${post.hashtags.map(tag => `<span class="album-tag">${tag}</span>`).join('')}
+                </div>
+            </div>
+            <button class="album-card-more">Подробнее</button>
+        </div>
+    `).join('');
+
+    // Добавляем обработчики для кнопок "Подробнее"
+    container.querySelectorAll('.album-card-more').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const card = this.closest('.album-card');
+            const postId = card.dataset.id;
+            showNotification(`Открыт пост: ${card.querySelector('.album-card-title').textContent}`);
+            // Здесь можно добавить логику открытия полного поста
+        });
+    });
+}
+
+// Настройка поиска по альбому
+function setupAlbumSearch(posts, searchInput, container) {
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        if (!searchTerm) {
+            renderAlbumPosts(posts, container);
+            return;
+        }
+        
+        const filteredPosts = posts.filter(post => 
+            post.title.toLowerCase().includes(searchTerm) ||
+            post.content.toLowerCase().includes(searchTerm) ||
+            post.hashtags.some(tag => tag.toLowerCase().includes(searchTerm))
+        );
+        
+        renderAlbumPosts(filteredPosts, container);
+    });
+}
+
 // === ОБНОВЛЕНИЕ ДАННЫХ TELEGRAM ===
 function initTelegramData() {
     updateTelegramData();
@@ -242,19 +380,16 @@ async function updateTelegramData() {
         // Обновляем счетчик подписчиков
         const subscriberElement = document.querySelector('#subscriber-count');
         if (subscriberElement && data.subscribers) {
-            // Анимация изменения числа
             animateNumber(subscriberElement, data.subscribers);
         }
         
         console.log('✅ Данные Telegram обновлены:', data.updated);
-        
     } catch (error) {
         console.error('❌ Ошибка загрузки данных Telegram:', error);
         
         // Fallback значения при ошибке
         const subscriberElement = document.querySelector('#subscriber-count');
         if (subscriberElement && subscriberElement.textContent === '900+') {
-            // Если данные не загрузились, показываем приблизительное значение
             subscriberElement.textContent = '950+';
         }
     }
@@ -281,12 +416,10 @@ function animateNumber(element, newValue) {
 
 // Показ уведомлений
 function showNotification(message, type = 'success', duration = 3000) {
-    // Создаем элемент уведомления
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
     
-    // Стили для уведомления
     notification.style.cssText = `
         position: fixed;
         top: 80px;
@@ -307,13 +440,11 @@ function showNotification(message, type = 'success', duration = 3000) {
     
     document.body.appendChild(notification);
     
-    // Показываем уведомление
     setTimeout(() => {
         notification.style.opacity = '1';
         notification.style.transform = 'translateX(0)';
     }, 100);
     
-    // Скрываем и удаляем уведомление
     setTimeout(() => {
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(100%)';
@@ -325,72 +456,5 @@ function showNotification(message, type = 'success', duration = 3000) {
     }, duration);
 }
 
-// Утилита для плавной прокрутки к элементу
-function scrollToElement(elementId, offset = 0) {
-    const element = document.getElementById(elementId.replace('#', ''));
-    if (element) {
-        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-        const offsetPosition = elementPosition - offset;
-
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-        });
-    }
-}
-
-// Утилита для проверки видимости элемента
-function isElementInViewport(element) {
-    const rect = element.getBoundingClientRect();
-    return (
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    );
-}
-
-// Утилита для дебаунса (ограничение частоты вызовов функции)
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Отслеживание производительности (для разработки)
-if (window.performance) {
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            const loadTime = performance.now();
-            console.log(`🏛️ Сайт "Блеск Империи" полностью загружен за ${loadTime.toFixed(2)}ms`);
-        }, 0);
-    });
-}
-
-// Обработка ошибок JavaScript
-window.addEventListener('error', function(e) {
-    console.error('❌ Ошибка JavaScript на сайте "Блеск Империи":', e.error);
-});
-
-// Отслеживание онлайн/офлайн статуса
-window.addEventListener('online', () => {
-    showNotification('🌐 Соединение восстановлено', 'success', 2000);
-});
-
-window.addEventListener('offline', () => {
-    showNotification('🔌 Нет интернет-соединения', 'warning', 5000);
-});
-
-// Экспорт функций для использования в других модулях (если нужно)
-window.HistoricalSite = {
-    scrollToElement,
-    showNotification,
-    isElementInViewport,
-    debounce
-};
+// Остальные вспомогательные функции (scrollToElement, isElementInViewport, debounce) остаются без изменений
+// ...

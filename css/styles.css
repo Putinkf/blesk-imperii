@@ -47,6 +47,20 @@
     font-display: swap;
 }
 
+/* === Переменные CSS === */
+:root {
+    --primary-color: #4a6491;
+    --card-bg: #ffffff;
+    --border-color: #e0e0e0;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --tag-bg: rgba(74, 100, 145, 0.1);
+    --border-radius: 8px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+
 /* CSS переменные для тем */
 :root[data-theme="light"] {
     --bg-primary: linear-gradient(135deg, #f5f2e8 0%, #ede7d3 50%, #e8dcc0 100%);
