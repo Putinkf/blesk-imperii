@@ -45,5 +45,25 @@
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
     </script>
+	<!-- Firebase SDK -->
+	<script type="module">
+	  import { registerUser } from 'js./firebase-service.js';
+
+	  const form = document.getElementById('registerForm');
+	  form.addEventListener('submit', async function(e) {
+		e.preventDefault();
+		const email = form.email.value.trim().toLowerCase();
+		const password = form.password.value;
+		const username = form.username.value.trim();
+
+		try {
+		  await registerUser(email, password, username);
+		  alert('Регистрация прошла успешно! Теперь войдите в систему.');
+		  window.location.href = 'login.html';
+		} catch (err) {
+		  alert('Ошибка регистрации: ' + err.message);
+		}
+	  });
+	</script>
 </body>
 </html>
